@@ -37,9 +37,9 @@ async def scrape_and_store():
                         if isinstance(cell, Tag)
                     ]
                     if len(cells) >= 4:
-                        year = cells[0].get_text(strip=True)
+                        year = cells[0].get("title", None)
                         content_type = cells[1].get_text(strip=True)
-                        title = cells[2].get_text(strip=True)
+                        title = cells[2].get("title", None)
                         released = cells[3].get_text(strip=True)
                         entry = CanonMediaEntry(
                             year=year or None,
