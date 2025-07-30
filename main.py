@@ -151,12 +151,18 @@ async def media_table(
         id_lt if id_lt is not None else "",
     )
     for m in filtered:
-        # Add current query string to form action for watched toggle
         query_str = request.url.query
         action_url = f"/media/{m.id}/watched"
         if query_str:
             action_url += f"?{query_str}"
-        table_html += f"<tr><td>{m.id}</td><td>{m.year}</td><td>{m.content_type}</td><td>{m.title}{f' -- {m.episode_title}' if m.episode_title else ''}</td><td>{m.released}</td><td>{'Yes' if m.watched else 'No'}</td>"
+        table_html += f"<tr><td>{m.id}</td>"
+        table_html += f"<td>{m.year_html if m.year_html else m.year}</td>"
+        table_html += (
+            f"<td>{m.content_type_html if m.content_type_html else m.content_type}</td>"
+        )
+        table_html += f"<td>{m.title_html if m.title_html else m.title}{f' -- {m.episode_title}' if not m.title_html and m.episode_title else ''}</td>"
+        table_html += f"<td>{m.released_html if m.released_html else m.released}</td>"
+        table_html += f"<td>{'Yes' if m.watched else 'No'}</td>"
         table_html += f"<td><form method='post' action='{action_url}'><input type='hidden' name='watched' value='{str(not m.watched).lower()}'><button type='submit'>{'Mark Unwatched' if m.watched else 'Mark Watched'}</button></form></td></tr>"
     table_html += "</table>"
     return table_html

@@ -37,17 +37,30 @@ async def scrape_and_store():
                         if isinstance(cell, Tag)
                     ]
                     if len(cells) >= 4:
+                        year_cell = cells[0]
+                        type_cell = cells[1]
+                        title_cell = cells[2]
+                        released_cell = cells[3]
+
                         # For year (cell 0)
-                        year = cells[0]
+                        year = year_cell.get_text(strip=True) if year_cell else None
+                        year_html = year_cell.decode_contents() if year_cell else None
+                        # For content_type (cell 1)
+                        content_type = (
+                            type_cell.get_text(strip=True) if type_cell else None
+                        )
+                        content_type_html = (
+                            type_cell.decode_contents() if type_cell else None
+                        )
                         # For title and episode_title (cell 2)
                         title = None
                         episode_title = None
                         title_html = None
-                        if isinstance(cells[2], Tag):
-                            title_html = str(cells[2])
+                        if isinstance(title_cell, Tag):
+                            title_html = title_cell.decode_contents()
                             a_tags = [
                                 a
-                                for a in cells[2].find_all("a")
+                                for a in title_cell.find_all("a")
                                 if isinstance(a, Tag) and a.get("title")
                             ]
                             if len(a_tags) >= 2:
@@ -55,11 +68,19 @@ async def scrape_and_store():
                                 episode_title = a_tags[-1].get("title")
                             elif len(a_tags) == 1:
                                 title = a_tags[0].get("title")
-                            if title is None and cells[2].get("title"):
-                                title = cells[2].get("title")
+                            if title is None and title_cell.get("title"):
+                                title = title_cell.get("title")
 
-                        content_type = cells[1]
-                        released = cells[3]
+                        # For released (cell 3)
+                        released = (
+                            released_cell.get_text(strip=True)
+                            if released_cell
+                            else None
+                        )
+                        released_html = (
+                            released_cell.decode_contents() if released_cell else None
+                        )
+
                         # Try to find existing entry
                         result = await session.execute(
                             select(CanonMediaEntry).where(
@@ -75,25 +96,36 @@ async def scrape_and_store():
                             # Update fields except watched
                             if year is not None:
                                 setattr(existing, "year", year)
+                            if year_html is not None:
+                                setattr(existing, "year_html", year_html)
                             if content_type is not None:
                                 setattr(existing, "content_type", content_type)
+                            if content_type_html is not None:
+                                setattr(
+                                    existing, "content_type_html", content_type_html
+                                )
                             if title is not None:
                                 setattr(existing, "title", title)
-                            if episode_title is not None:
-                                setattr(existing, "episode_title", episode_title)
                             if title_html is not None:
                                 setattr(existing, "title_html", title_html)
+                            if episode_title is not None:
+                                setattr(existing, "episode_title", episode_title)
                             if released is not None:
                                 setattr(existing, "released", released)
+                            if released_html is not None:
+                                setattr(existing, "released_html", released_html)
                             # watched status is preserved
                         else:
                             entry = CanonMediaEntry(
                                 year=year or None,
+                                year_html=year_html,
                                 content_type=content_type or None,
+                                content_type_html=content_type_html,
                                 title=title,
-                                episode_title=episode_title,
                                 title_html=title_html,
+                                episode_title=episode_title,
                                 released=released or None,
+                                released_html=released_html,
                                 watched=False,
                             )
                             session.add(entry)
