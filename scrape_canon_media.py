@@ -38,15 +38,7 @@ async def scrape_and_store():
                     ]
                     if len(cells) >= 4:
                         # For year (cell 0)
-                        year = None
-                        if isinstance(cells[0], Tag):
-                            a_tags = cells[0].find_all("a")
-                            for a in reversed(a_tags):
-                                if isinstance(a, Tag) and a.get("title"):
-                                    year = a.get("title")
-                                    break
-                            if year is None and cells[0].get("title"):
-                                year = cells[0].get("title")
+                        year = cells[0]
                         # For title and episode_title (cell 2)
                         title = None
                         episode_title = None
