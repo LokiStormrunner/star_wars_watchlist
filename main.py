@@ -143,7 +143,7 @@ async def media_table(
         <input type='number' name='id_lt' value='{}' onchange='if(this.value==""){{this.form.removeAttribute("action");this.form.submit();}}else{{this.form.submit();}}'>
     </form>
     <table border='1'>
-        <tr><th>ID</th><th>Year</th><th>Type</th><th>Title</th><th>Released</th><th>Watched</th><th>Action</th></tr>
+        <tr><th>ID</th><th>Year</th><th>Type</th><th>Title</th><th>Season</th><th>Episode</th><th>Released</th><th>Watched</th><th>Action</th></tr>
     """.format(
         "selected" if watched_val is True else "",
         "selected" if watched_val is False else "",
@@ -160,7 +160,9 @@ async def media_table(
         table_html += (
             f"<td>{m.content_type_html if m.content_type_html else m.content_type}</td>"
         )
-        table_html += f"<td>{m.title_html if m.title_html else m.title}{f' -- {m.episode_title}' if not m.title_html and m.episode_title else ''}</td>"
+        table_html += f"<td>{m.title_html if m.title_html else m.title}{f' -- {m.episode_title}' if m.episode_title else ''}</td>"
+        table_html += f"<td>{m.season}</td>"
+        table_html += f"<td>{m.episode}</td>"
         table_html += f"<td>{m.released_html if m.released_html else m.released}</td>"
         table_html += f"<td>{'Yes' if m.watched else 'No'}</td>"
         table_html += f"<td><form method='post' action='{action_url}'><input type='hidden' name='watched' value='{str(not m.watched).lower()}'><button type='submit'>{'Mark Unwatched' if m.watched else 'Mark Watched'}</button></form></td></tr>"

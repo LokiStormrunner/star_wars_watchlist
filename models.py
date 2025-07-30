@@ -26,6 +26,8 @@ class CanonMediaEntry(Base):
     )  # e.g. '2023-04-26', '2015-09-04', etc.
     released_html = Column(String(512), nullable=True)
     watched = Column(Boolean, default=False)
+    season = Column(String(8), nullable=False, default="")
+    episode = Column(String(8), nullable=False, default="")
 
 
 class CanonMediaEntrySchema(BaseModel):
@@ -41,5 +43,7 @@ class CanonMediaEntrySchema(BaseModel):
     released: Optional[str]
     released_html: Optional[str]
     watched: bool
+    season: str = ""
+    episode: str = ""
 
     model_config = {"from_attributes": True}

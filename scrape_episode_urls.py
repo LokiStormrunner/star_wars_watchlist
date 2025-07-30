@@ -14,7 +14,7 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 FETCH_DELAY_SECONDS = 0.5
 
 
-async def fetch_and_extract(session, url, entry_id):
+async def fetch_and_extract(session, url, entry_id, db_session):
     import asyncio
 
     await asyncio.sleep(FETCH_DELAY_SECONDS)
@@ -22,10 +22,10 @@ async def fetch_and_extract(session, url, entry_id):
         async with session.get(url) as resp:
             if resp.status == 200:
                 html = await resp.text()
-                # Extract season and episode number from the HTML
                 soup = BeautifulSoup(html, "html.parser")
-                season = None
-                episode = None
+                season = ""
+                episode = ""
+                # Extract season and episode number from the HTML
                 # Try to find season and episode info in infobox or headings
                 infobox = soup.find(class_="infobox")
                 if infobox and hasattr(infobox, "find_all"):
@@ -95,6 +95,15 @@ async def fetch_and_extract(session, url, entry_id):
                 print(
                     f"Entry {entry_id}: season={season}, episode={episode}, url={url}"
                 )
+                # Save season and episode to DB
+                result = await db_session.execute(
+                    select(CanonMediaEntry).where(CanonMediaEntry.id == entry_id)
+                )
+                entry = result.scalar_one_or_none()
+                if entry:
+                    entry.season = season
+                    entry.episode = episode
+                    await db_session.commit()
             else:
                 print(f"Failed to fetch {url}: {resp.status}")
     except Exception as e:
@@ -108,9 +117,14 @@ async def scrape_episode_urls():
         async with aiohttp.ClientSession() as http_session:
             tasks = []
             for entry in entries:
-                if getattr(entry, "episode_url", None):
+                if (
+                    getattr(entry, "episode_url", None)
+                    and getattr(entry, "content_type", None) == "TV"
+                ):
                     tasks.append(
-                        fetch_and_extract(http_session, entry.episode_url, entry.id)
+                        fetch_and_extract(
+                            http_session, entry.episode_url, entry.id, db_session
+                        )
                     )
             await asyncio.gather(*tasks)
 
