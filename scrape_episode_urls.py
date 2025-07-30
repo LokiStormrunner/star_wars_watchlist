@@ -115,18 +115,14 @@ async def scrape_episode_urls():
         result = await db_session.execute(select(CanonMediaEntry))
         entries = result.scalars().all()
         async with aiohttp.ClientSession() as http_session:
-            tasks = []
             for entry in entries:
                 if (
                     getattr(entry, "episode_url", None)
                     and getattr(entry, "content_type", None) == "TV"
                 ):
-                    tasks.append(
-                        fetch_and_extract(
-                            http_session, entry.episode_url, entry.id, db_session
-                        )
+                    await fetch_and_extract(
+                        http_session, entry.episode_url, entry.id, db_session
                     )
-            await asyncio.gather(*tasks)
 
 
 if __name__ == "__main__":
