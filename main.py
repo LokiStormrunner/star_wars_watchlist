@@ -1,22 +1,27 @@
-import json
+import asyncio
 import re
 from typing import List, Optional
 
 from fastapi import FastAPI, Form, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
+from sqlalchemy.future import select
 
-from models import CanonMediaEntry
+from db import AsyncSessionLocal
+from models import CanonMediaEntry, CanonMediaEntrySchema
 
 app = FastAPI()
 
-# Load data from JSON
-with open("canon_media.json") as f:
-    media_data = [CanonMediaEntry(**entry) for entry in json.load(f)]
+
+async def get_all_media():
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(CanonMediaEntry))
+        return result.scalars().all()
 
 
-def save_media():
-    with open("canon_media.json", "w") as f:
-        json.dump([m.model_dump() for m in media_data], f, indent=2)
+async def save_media_entry(entry):
+    async with AsyncSessionLocal() as session:
+        session.add(entry)
+        await session.commit()
 
 
 def parse_year(year_str):
@@ -41,55 +46,62 @@ def read_root():
     return {"message": "Hello, FastAPI World!"}
 
 
-@app.get("/media", response_model=List[CanonMediaEntry])
-def get_media(
+@app.get("/media", response_model=List[CanonMediaEntrySchema])
+async def get_media(
     content_type: Optional[List[str]] = Query(None),
     watched: Optional[bool] = Query(None),
     id_gt: Optional[int] = Query(None),
     id_lt: Optional[int] = Query(None),
 ):
-    result = media_data
+    media_data = await get_all_media()
+    # Convert to Pydantic models for safe attribute access
+    result = [CanonMediaEntrySchema.model_validate(m) for m in media_data]
     if content_type:
         result = [m for m in result if m.content_type in content_type]
     if watched is not None:
         result = [m for m in result if m.watched == watched]
     if id_gt is not None:
-        result = [m for m in result if m.id > id_gt]
+        result = [m for m in result if m.id is not None and m.id > id_gt]
     if id_lt is not None:
-        result = [m for m in result if m.id < id_lt]
+        result = [m for m in result if m.id is not None and m.id < id_lt]
     return result
 
 
 @app.post("/media/{media_id}/watched")
-def update_watched(media_id: int, watched: bool = Form(...)):
-    for m in media_data:
-        if m.id == media_id:
-            m.watched = watched
-            save_media()
-            break
-    else:
-        raise HTTPException(status_code=404, detail="Media entry not found")
+async def update_watched(media_id: int, watched: bool = Form(...)):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(CanonMediaEntry).where(CanonMediaEntry.id == media_id)
+        )
+        entry = result.scalar_one_or_none()
+        if entry:
+            setattr(entry, "watched", watched)
+            await session.commit()
+        else:
+            raise HTTPException(status_code=404, detail="Media entry not found")
     return RedirectResponse(url="/media/table", status_code=303)
 
 
 @app.get("/media/table", response_class=HTMLResponse)
-def media_table(
+async def media_table(
     request: Request,
     content_type: Optional[List[str]] = Query(None),
     watched: Optional[bool] = Query(None),
     id_gt: Optional[int] = Query(None),
     id_lt: Optional[int] = Query(None),
 ):
-    filtered = media_data
-    types = sorted(set(m.content_type for m in media_data if m.content_type))
+    media_data = await get_all_media()
+    entries = [CanonMediaEntrySchema.model_validate(m) for m in media_data]
+    filtered = entries
+    types = sorted(set(m.content_type for m in entries if m.content_type))
     if content_type:
         filtered = [m for m in filtered if m.content_type in content_type]
     if watched is not None:
         filtered = [m for m in filtered if m.watched == watched]
     if id_gt is not None:
-        filtered = [m for m in filtered if m.id > id_gt]
+        filtered = [m for m in filtered if m.id is not None and m.id > id_gt]
     if id_lt is not None:
-        filtered = [m for m in filtered if m.id < id_lt]
+        filtered = [m for m in filtered if m.id is not None and m.id < id_lt]
     selected_types = request.query_params.getlist("content_type")
     table_html = f"""
     <form method='get'>
