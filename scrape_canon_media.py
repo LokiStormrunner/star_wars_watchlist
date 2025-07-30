@@ -42,6 +42,21 @@ async def scrape_and_store():
                         title_cell = cells[2]
                         released_cell = cells[3]
 
+                        # Prepend local hrefs in all cells
+                        for cell in [year_cell, type_cell, title_cell, released_cell]:
+                            if cell:
+                                for a in cell.find_all("a", href=True):
+                                    if isinstance(a, Tag):
+                                        href = a.get("href")
+                                        if (
+                                            isinstance(href, str)
+                                            and href.startswith("/")
+                                            and not href.startswith("//")
+                                        ):
+                                            a.attrs["href"] = (
+                                                f"https://starwars.fandom.com{href}"
+                                            )
+
                         # For year (cell 0)
                         year = year_cell.get_text(strip=True) if year_cell else None
                         year_html = year_cell.decode_contents() if year_cell else None
