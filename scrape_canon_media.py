@@ -37,9 +37,33 @@ async def scrape_and_store():
                         if isinstance(cell, Tag)
                     ]
                     if len(cells) >= 4:
-                        year = cells[0].get("title", None)
+                        # For year (cell 0)
+                        year = None
+                        if isinstance(cells[0], Tag):
+                            a_tags = cells[0].find_all("a")
+                            for a in reversed(a_tags):
+                                if isinstance(a, Tag) and a.get("title"):
+                                    year = a.get("title")
+                                    break
+                            if year is None and cells[0].get("title"):
+                                year = cells[0].get("title")
+                        # For title and episode_title (cell 2)
+                        title = None
+                        episode_title = None
+                        if isinstance(cells[2], Tag):
+                            a_tags = [
+                                a
+                                for a in cells[2].find_all("a")
+                                if isinstance(a, Tag) and a.get("title")
+                            ]
+                            if len(a_tags) >= 2:
+                                title = a_tags[-2].get("title")
+                                episode_title = a_tags[-1].get("title")
+                            elif len(a_tags) == 1:
+                                title = a_tags[0].get("title")
+                            if title is None and cells[2].get("title"):
+                                title = cells[2].get("title")
                         content_type = cells[1].get_text(strip=True)
-                        title = cells[2].get("title", None)
                         released = cells[3].get_text(strip=True)
                         # Try to find existing entry
                         result = await session.execute(
@@ -47,6 +71,7 @@ async def scrape_and_store():
                                 CanonMediaEntry.year == year,
                                 CanonMediaEntry.content_type == content_type,
                                 CanonMediaEntry.title == title,
+                                CanonMediaEntry.episode_title == episode_title,
                                 CanonMediaEntry.released == released,
                             )
                         )
@@ -59,6 +84,8 @@ async def scrape_and_store():
                                 setattr(existing, "content_type", content_type)
                             if title is not None:
                                 setattr(existing, "title", title)
+                            if episode_title is not None:
+                                setattr(existing, "episode_title", episode_title)
                             if released is not None:
                                 setattr(existing, "released", released)
                             # watched status is preserved
@@ -67,6 +94,7 @@ async def scrape_and_store():
                                 year=year or None,
                                 content_type=content_type or None,
                                 title=title,
+                                episode_title=episode_title,
                                 released=released or None,
                                 watched=False,
                             )

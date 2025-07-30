@@ -156,7 +156,7 @@ async def media_table(
         action_url = f"/media/{m.id}/watched"
         if query_str:
             action_url += f"?{query_str}"
-        table_html += f"<tr><td>{m.id}</td><td>{m.year}</td><td>{m.content_type}</td><td>{m.title}</td><td>{m.released}</td><td>{'Yes' if m.watched else 'No'}</td>"
+        table_html += f"<tr><td>{m.id}</td><td>{m.year}</td><td>{m.content_type}</td><td>{m.title}{f' -- {m.episode_title}' if m.episode_title else ''}</td><td>{m.released}</td><td>{'Yes' if m.watched else 'No'}</td>"
         table_html += f"<td><form method='post' action='{action_url}'><input type='hidden' name='watched' value='{str(not m.watched).lower()}'><button type='submit'>{'Mark Unwatched' if m.watched else 'Mark Watched'}</button></form></td></tr>"
     table_html += "</table>"
     return table_html

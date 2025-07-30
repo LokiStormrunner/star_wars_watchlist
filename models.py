@@ -16,6 +16,7 @@ class CanonMediaEntry(Base):
     )  # e.g. '382 BBY', '0 ABY', 'c. 232 BBY', etc.
     content_type = Column(String(64), nullable=True)  # e.g. 'C', 'TV', 'N', etc.
     title = Column(String(256), nullable=False)
+    episode_title = Column(String(256), nullable=True)
     released = Column(
         String(64), nullable=True
     )  # e.g. '2023-04-26', '2015-09-04', etc.
@@ -27,6 +28,7 @@ class CanonMediaEntrySchema(BaseModel):
     year: Optional[str]
     content_type: Optional[str]
     title: str
+    episode_title: Optional[str]
     released: Optional[str]
     watched: bool
 
