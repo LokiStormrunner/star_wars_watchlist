@@ -70,6 +70,7 @@ async def scrape_and_store():
                         # For title and episode_title (cell 2)
                         title = None
                         episode_title = None
+                        episode_url = None
                         title_html = None
                         # Remove direct child <span> elements from title_cell only if they contain a descendant 'a' tag with 'data-image-name'
                         if isinstance(title_cell, Tag):
@@ -98,8 +99,10 @@ async def scrape_and_store():
                             if len(a_tags) >= 2:
                                 title = a_tags[-2].get("title")
                                 episode_title = a_tags[-1].get("title")
+                                episode_url = a_tags[-1].get("href")
                             elif len(a_tags) == 1:
                                 title = a_tags[0].get("title")
+                                episode_url = a_tags[0].get("href")
                             if title is None and title_cell.get("title"):
                                 title = title_cell.get("title")
 
@@ -142,6 +145,8 @@ async def scrape_and_store():
                                 setattr(existing, "title_html", title_html)
                             if episode_title is not None:
                                 setattr(existing, "episode_title", episode_title)
+                            if episode_url is not None:
+                                setattr(existing, "episode_url", episode_url)
                             if released is not None:
                                 setattr(existing, "released", released)
                             if released_html is not None:
@@ -156,6 +161,7 @@ async def scrape_and_store():
                                 title=title,
                                 title_html=title_html,
                                 episode_title=episode_title,
+                                episode_url=episode_url,
                                 released=released or None,
                                 released_html=released_html,
                                 watched=False,

@@ -19,6 +19,7 @@ class CanonMediaEntry(Base):
     content_type_html = Column(String(512), nullable=True)
     title = Column(String(256), nullable=False)
     episode_title = Column(String(256), nullable=True)
+    episode_url = Column(String(512), nullable=True)
     title_html = Column(String(512), nullable=True)
     released = Column(
         String(64), nullable=True
@@ -35,6 +36,7 @@ class CanonMediaEntrySchema(BaseModel):
     content_type_html: Optional[str]
     title: str
     episode_title: Optional[str]
+    episode_url: Optional[str]
     title_html: Optional[str]
     released: Optional[str]
     released_html: Optional[str]
