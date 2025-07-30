@@ -71,7 +71,24 @@ async def scrape_and_store():
                         title = None
                         episode_title = None
                         title_html = None
+                        # Remove direct child <span> elements from title_cell only if they contain a descendant 'a' tag with 'data-image-name'
                         if isinstance(title_cell, Tag):
+                            for span in list(
+                                title_cell.find_all("span", recursive=False)
+                            ):
+                                if not isinstance(span, Tag):
+                                    continue
+                                has_image_img = False
+                                for img in span.find_all("img"):
+                                    if (
+                                        isinstance(img, Tag)
+                                        and "data-image-name" in img.attrs
+                                    ):
+                                        has_image_img = True
+                                        break
+                                if has_image_img and img.parent and img.parent.parent:
+                                    img.parent.parent.decompose()
+                                    # span.decompose()
                             title_html = title_cell.decode_contents()
                             a_tags = [
                                 a
