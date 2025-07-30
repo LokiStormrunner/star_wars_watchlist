@@ -41,14 +41,36 @@ async def scrape_and_store():
                         content_type = cells[1].get_text(strip=True)
                         title = cells[2].get("title", None)
                         released = cells[3].get_text(strip=True)
-                        entry = CanonMediaEntry(
-                            year=year or None,
-                            content_type=content_type or None,
-                            title=title,
-                            released=released or None,
-                            watched=False,
+                        # Try to find existing entry
+                        result = await session.execute(
+                            select(CanonMediaEntry).where(
+                                CanonMediaEntry.year == year,
+                                CanonMediaEntry.content_type == content_type,
+                                CanonMediaEntry.title == title,
+                                CanonMediaEntry.released == released,
+                            )
                         )
-                        session.add(entry)
+                        existing = result.scalar_one_or_none()
+                        if existing:
+                            # Update fields except watched
+                            if year is not None:
+                                setattr(existing, "year", year)
+                            if content_type is not None:
+                                setattr(existing, "content_type", content_type)
+                            if title is not None:
+                                setattr(existing, "title", title)
+                            if released is not None:
+                                setattr(existing, "released", released)
+                            # watched status is preserved
+                        else:
+                            entry = CanonMediaEntry(
+                                year=year or None,
+                                content_type=content_type or None,
+                                title=title,
+                                released=released or None,
+                                watched=False,
+                            )
+                            session.add(entry)
                         entry_id += 1
         await session.commit()
 
