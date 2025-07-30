@@ -4,7 +4,7 @@
 
 ## Screenshot
 
-![1753919379719](image/README/1753919379719.png)
+![1753919684396](image/README/1753919684396.png)
 
 This project is a modern FastAPI web application for tracking your progress through the Star Wars canon media timeline. It features a responsive UI for filtering by media type, watched status, and ID, and is powered by a SQLite database for local storage. The app is managed with Poetry and includes scraping tools to ingest canon media from HTML sources.
 
