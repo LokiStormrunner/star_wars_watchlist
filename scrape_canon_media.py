@@ -66,8 +66,8 @@ async def scrape_and_store():
                             if title is None and cells[2].get("title"):
                                 title = cells[2].get("title")
 
-                        content_type = cells[1].get_text(strip=True)
-                        released = cells[3].get_text(strip=True)
+                        content_type = cells[1]
+                        released = cells[3]
                         # Try to find existing entry
                         result = await session.execute(
                             select(CanonMediaEntry).where(
