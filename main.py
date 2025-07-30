@@ -68,7 +68,9 @@ async def get_media(
 
 
 @app.post("/media/{media_id}/watched")
-async def update_watched(media_id: int, watched: bool = Form(...)):
+async def update_watched(
+    media_id: int, watched: bool = Form(...), request: Request = None
+):
     async with AsyncSessionLocal() as session:
         result = await session.execute(
             select(CanonMediaEntry).where(CanonMediaEntry.id == media_id)
@@ -79,6 +81,11 @@ async def update_watched(media_id: int, watched: bool = Form(...)):
             await session.commit()
         else:
             raise HTTPException(status_code=404, detail="Media entry not found")
+    # Preserve query parameters in redirect
+    query_string = request.headers.get("referer", "")
+    if "?" in query_string:
+        params = query_string.split("?", 1)[1]
+        return RedirectResponse(url=f"/media/table?{params}", status_code=303)
     return RedirectResponse(url="/media/table", status_code=303)
 
 
@@ -144,7 +151,12 @@ async def media_table(
         id_lt if id_lt is not None else "",
     )
     for m in filtered:
+        # Add current query string to form action for watched toggle
+        query_str = request.url.query
+        action_url = f"/media/{m.id}/watched"
+        if query_str:
+            action_url += f"?{query_str}"
         table_html += f"<tr><td>{m.id}</td><td>{m.year}</td><td>{m.content_type}</td><td>{m.title}</td><td>{m.released}</td><td>{'Yes' if m.watched else 'No'}</td>"
-        table_html += f"<td><form method='post' action='/media/{m.id}/watched'><input type='hidden' name='watched' value='{str(not m.watched).lower()}'><button type='submit'>{'Mark Unwatched' if m.watched else 'Mark Watched'}</button></form></td></tr>"
+        table_html += f"<td><form method='post' action='{action_url}'><input type='hidden' name='watched' value='{str(not m.watched).lower()}'><button type='submit'>{'Mark Unwatched' if m.watched else 'Mark Watched'}</button></form></td></tr>"
     table_html += "</table>"
     return table_html
