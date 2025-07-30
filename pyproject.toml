@@ -20,3 +20,4 @@ package-mode = false
     python-multipart = ">=0.0.20,<0.0.21"
     aiosqlite = ">=0.21.0,<0.22.0"
     greenlet = "^3.2.3"
+    aiohttp = "^3.12.15"
