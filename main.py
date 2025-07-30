@@ -86,27 +86,38 @@ async def update_watched(media_id: int, watched: bool = Form(...)):
 async def media_table(
     request: Request,
     content_type: Optional[List[str]] = Query(None),
-    watched: Optional[bool] = Query(None),
-    id_gt: Optional[int] = Query(None),
-    id_lt: Optional[int] = Query(None),
+    watched: Optional[str] = Query(None),
+    id_gt: Optional[str] = Query(None),
+    id_lt: Optional[str] = Query(None),
 ):
     media_data = await get_all_media()
     entries = [CanonMediaEntrySchema.model_validate(m) for m in media_data]
     filtered = entries
     types = sorted(set(m.content_type for m in entries if m.content_type))
-    if content_type:
-        filtered = [m for m in filtered if m.content_type in content_type]
-    if watched is not None:
-        filtered = [m for m in filtered if m.watched == watched]
-    if id_gt is not None:
-        filtered = [m for m in filtered if m.id is not None and m.id > id_gt]
-    if id_lt is not None:
-        filtered = [m for m in filtered if m.id is not None and m.id < id_lt]
     selected_types = request.query_params.getlist("content_type")
-    table_html = f"""
+    # Handle empty/All for filters
+    content_type_val = (
+        selected_types if selected_types and any(selected_types) else None
+    )
+    watched_val = None
+    if watched == "true":
+        watched_val = True
+    elif watched == "false":
+        watched_val = False
+    id_gt_val = int(id_gt) if id_gt and id_gt.strip() else None
+    id_lt_val = int(id_lt) if id_lt and id_lt.strip() else None
+    if content_type_val:
+        filtered = [m for m in filtered if m.content_type in content_type_val]
+    if watched_val is not None:
+        filtered = [m for m in filtered if m.watched == watched_val]
+    if id_gt_val is not None:
+        filtered = [m for m in filtered if m.id is not None and m.id > id_gt_val]
+    if id_lt_val is not None:
+        filtered = [m for m in filtered if m.id is not None and m.id < id_lt_val]
+    table_html = """
     <form method='get'>
         <label>Filter by type:</label>
-        <select name='content_type' multiple size='{len(types)}' onchange='this.form.submit()'>
+        <select name='content_type' multiple size='10' onchange='if([...this.options].every(opt=>!opt.selected)){this.form.removeAttribute("action");this.form.submit();}else{this.form.submit();}'>
     """
     for t in types:
         selected = "selected" if t in selected_types else ""
@@ -114,21 +125,21 @@ async def media_table(
     table_html += """
         </select>
         <label>Watched:</label>
-        <select name='watched' onchange='this.form.submit()'>
+        <select name='watched' onchange='if(this.value==""){{this.form.removeAttribute("action");this.form.submit();}}else{{this.form.submit();}}'>
             <option value=''>All</option>
             <option value='true' {}>Watched</option>
             <option value='false' {}>Unwatched</option>
         </select>
         <label>ID greater than:</label>
-        <input type='number' name='id_gt' value='{}' onchange='this.form.submit()'>
+        <input type='number' name='id_gt' value='{}' onchange='if(this.value==""){{this.form.removeAttribute("action");this.form.submit();}}else{{this.form.submit();}}'>
         <label>ID less than:</label>
-        <input type='number' name='id_lt' value='{}' onchange='this.form.submit()'>
+        <input type='number' name='id_lt' value='{}' onchange='if(this.value==""){{this.form.removeAttribute("action");this.form.submit();}}else{{this.form.submit();}}'>
     </form>
     <table border='1'>
         <tr><th>ID</th><th>Year</th><th>Type</th><th>Title</th><th>Released</th><th>Watched</th><th>Action</th></tr>
     """.format(
-        "selected" if watched is True else "",
-        "selected" if watched is False else "",
+        "selected" if watched_val is True else "",
+        "selected" if watched_val is False else "",
         id_gt if id_gt is not None else "",
         id_lt if id_lt is not None else "",
     )
