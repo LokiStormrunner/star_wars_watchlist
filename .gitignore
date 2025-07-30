@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.env
+*.venv
+venv/
+env/
+ENV/
+*.egg-info/
+*.egg
+
+# SQLite database
+canon_media.db
+*.sqlite3
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+*.swp
+
+# Poetry
+poetry.lock
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Logs
+*.log
+
+# Other
+*.bak
+*.tmp
+*.orig
+
+# Test output
+htmlcov/
+.coverage
+.tox/
+
+# FastAPI static files
+static/
+
+# Node
+node_modules/
