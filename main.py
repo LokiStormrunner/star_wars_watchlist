@@ -160,7 +160,7 @@ async def media_table(
         table_html += (
             f"<td>{m.content_type_html if m.content_type_html else m.content_type}</td>"
         )
-        table_html += f"<td>{m.title_html if m.title_html else m.title}{f' -- {m.episode_title}' if m.episode_title else ''}</td>"
+        table_html += f"<td>{m.title_html if m.title_html else m.title}{f' -- {m.episode_title}' if not m.title_html and m.episode_title else ''}</td>"
         table_html += f"<td>{m.season}</td>"
         table_html += f"<td>{m.episode}</td>"
         table_html += f"<td>{m.released_html if m.released_html else m.released}</td>"
