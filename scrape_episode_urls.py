@@ -11,9 +11,13 @@ from models import CanonMediaEntry
 
 OUTPUT_DIR = "episode_pages"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+FETCH_DELAY_SECONDS = 0.5
 
 
 async def fetch_and_extract(session, url, entry_id):
+    import asyncio
+
+    await asyncio.sleep(FETCH_DELAY_SECONDS)
     try:
         async with session.get(url) as resp:
             if resp.status == 200:
