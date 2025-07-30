@@ -50,7 +50,9 @@ async def scrape_and_store():
                         # For title and episode_title (cell 2)
                         title = None
                         episode_title = None
+                        title_html = None
                         if isinstance(cells[2], Tag):
+                            title_html = str(cells[2])
                             a_tags = [
                                 a
                                 for a in cells[2].find_all("a")
@@ -63,6 +65,7 @@ async def scrape_and_store():
                                 title = a_tags[0].get("title")
                             if title is None and cells[2].get("title"):
                                 title = cells[2].get("title")
+
                         content_type = cells[1].get_text(strip=True)
                         released = cells[3].get_text(strip=True)
                         # Try to find existing entry
@@ -86,6 +89,8 @@ async def scrape_and_store():
                                 setattr(existing, "title", title)
                             if episode_title is not None:
                                 setattr(existing, "episode_title", episode_title)
+                            if title_html is not None:
+                                setattr(existing, "title_html", title_html)
                             if released is not None:
                                 setattr(existing, "released", released)
                             # watched status is preserved
@@ -95,6 +100,7 @@ async def scrape_and_store():
                                 content_type=content_type or None,
                                 title=title,
                                 episode_title=episode_title,
+                                title_html=title_html,
                                 released=released or None,
                                 watched=False,
                             )
