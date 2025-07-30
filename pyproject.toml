@@ -5,7 +5,7 @@ description = ""
 authors = [{ name = "Danny Makin", email = "dpmakin@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = ["fastapi (>=0.116.1,<0.117.0)", "uvicorn (>=0.35.0,<0.36.0)", "requests (>=2.32.4,<3.0.0)", "beautifulsoup4 (>=4.13.4,<5.0.0)", "python-multipart (>=0.0.20,<0.0.21)"]
+dependencies = ["fastapi (>=0.116.1,<0.117.0)", "uvicorn (>=0.35.0,<0.36.0)", "requests (>=2.32.4,<3.0.0)", "beautifulsoup4 (>=4.13.4,<5.0.0)", "python-multipart (>=0.0.20,<0.0.21)", "aiosqlite (>=0.21.0,<0.22.0)", "sqlalchemy (>=2.0.42,<3.0.0)"]
 
 
 [build-system]
