@@ -1,6 +1,6 @@
 # Star Wars Canon Media Watchlist (FastAPI)
 
-<!-- Paste a screenshot of the app UI below -->
+**NOTE:** I just had a kid and have zero time so this is 99.99% vibe coding. 
 
 ## Screenshot
 
